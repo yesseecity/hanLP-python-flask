@@ -18,8 +18,8 @@ app = Flask(__name__)
 api = Api(app)
 
 parser = reqparse.RequestParser()
-hanLPLibPath = '/root/tid_home/myProject/python/hanLP/hanlp-1.3.2/'
-# hanLPLibPath = '/root/localhome/hanLP/hanlp-1.3.2/'
+
+hanLPLibPath = '/hanlp/server/lib/hanlp-1.3.2/'
 javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
@@ -473,5 +473,5 @@ api.add_resource(hk2t, '/convert/hk2t')
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', 5001, debug=False)
+    app.run('0.0.0.0', 80, debug=False)
 
