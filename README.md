@@ -50,5 +50,3 @@ This README would normally document whatever steps are necessary to get your app
     把本地端的 80 port 映射到 docker container 的 80 port
 
   + 透過python執行``python ./server/hanlp-server.py``
-
-* [Wiki](https://bitbucket.org/foxdata/hanlp-python/wiki/Home)
