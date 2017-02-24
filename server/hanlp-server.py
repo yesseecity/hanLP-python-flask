@@ -143,7 +143,6 @@ class translatedNameRecognition(Resource):
             return {'error': { 'content': '長度不得為零'}}
 class keyword(Resource):
     def post(self):
-        parser.add_argument('num', type=int, required=True, help='num無法解析, keyword的數量num為int, *必要欄位')
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         num = parser.parse_args()['num']
@@ -410,53 +409,55 @@ class hk2t(Resource):
 
 
 
-#分詞工具
+# 分詞工具
 api.add_resource(segment, '/segment')
 api.add_resource(tcSegment, '/tcSegment')
 # api.add_resource(parseDependency, '/parseDependency')
-api.add_resource(indexTokenizer, '/indexTokenizer')
 api.add_resource(jpNameRecognition, '/jpName')
 api.add_resource(translatedNameRecognition, '/translatedName')
+api.add_resource(indexTokenizer, '/indexTokenizer')
 
-#分析並回傳文章重點keyword
-api.add_resource(keyword, '/keyword')
-
+# NLP 分詞
 api.add_resource(nlpTokenizer, '/nlpTokenizer')
 
-#分詞優先分出url
+# 分析並回傳文章重點keyword
+api.add_resource(keyword, '/keyword')
+
+
+# 分詞優先分出url
 api.add_resource(urlTokenizer, '/urlTokenizer')
 
-#去除停用詞 todo
+# 去除停用詞 todo
 # api.add_resource(notionalTokenizer, '/notionalTokenizer')
 
-#分詞優先分出量詞
+# 分詞優先分出量詞
 api.add_resource(numberAndQuantifierRecognition, '/quantifier')
 # api.add_resource(occurrence, '/occurrence ')
 
-#分詞優先分出組織
+# 分詞優先分出組織
 api.add_resource(organizationRecognition, '/org')
 
-#分析並回傳片語
-api.add_resource(phraseExtractor, '/phrase')
-
-#分詞優先分出地名
+# 分詞優先分出地名
 api.add_resource(placeRecognition, '/place')
+
+# 分析並回傳片語
+api.add_resource(phraseExtractor, '/phrase')
 
 api.add_resource(posTagging, '/posTagging')
 
-#文章重寫
+# 文章重寫
 api.add_resource(rewrite, '/rewrite')
 
 # api.add_resource(suggester, '/suggester')
 
-#文章總結
+# 文章總結
 api.add_resource(summary, '/summary')
 
-#比對字串的相似性 todo
+# 比對字串的相似性 todo
 # api.add_resource(wordDistance, '/wordDistance')
 
 
-#文字轉換
+# 文字轉換
 api.add_resource(convertToTraditionalChinese, '/convert/2tc')
 api.add_resource(convertToSimplifiedChinese, '/convert/2sc')
 api.add_resource(tw2s, '/convert/tw2s')
@@ -473,5 +474,5 @@ api.add_resource(hk2t, '/convert/hk2t')
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', 80, debug=False)
+    app.run('0.0.0.0', 5001, debug=False)
 
