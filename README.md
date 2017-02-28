@@ -36,17 +36,17 @@ This README would normally document whatever steps are necessary to get your app
   + 執行 docker image 並建立 container，並透過 volume 進行檔案的傳遞
     
     >```
-    $ docker run -it --name=lp -v ~/myProject/bitbucket/hanlp-python:/hanlp hanlp:0.1.12 /bin/bash
+    $ sudo docker run -it --name=hanlp020 -v ~/hanLP-python:/hanlp -p 0.0.0.0:80:5001 hanlp:0.2.0 /bin/bash
     ```
 
     指令說明:
 
     1. `--name` 是指container name
 
-    2. `-v ./:/hanlp`   
-    是把本地端 ``./`` 連結到 container 內的 ``/hanlp``
+    2. `-v ~/hanLP-python:/hanlp`   
+    是把本地端 ``~/hanLP-python`` 連結到 container 內的 ``/hanlp``
 
-    3. `-p 0.0.0.0:80:80`
-    把本地端的 80 port 映射到 docker container 的 80 port
+    3. `-p 0.0.0.0:80:5001`
+    把本地端的 80 port 映射到 docker container 的 5001 port
 
   + 透過python執行``python ./server/hanlp-server.py``
