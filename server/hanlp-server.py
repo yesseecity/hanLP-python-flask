@@ -88,31 +88,16 @@ class tcSegment(Resource):
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
-# class parseDependency(Resource):
-#     def post(self):
-#         content = parser.parse_args()['content']
-#         if len(content)>0:
-#             # segments = []
-#             # for v in HanLP.parseDependency(content):
-#             #     segments.append(str(v))
-#             # return {'response': segments}
-#             result = HanLP.parseDependency(content)
-#             print result
-#             # result2 = result.getWordArray()
-#             # print result2
-#             print type(result)
-#             # return HanLP.parseDependency(content)
-#         else:
-#             return {'error': { 'content': '長度不得為零'}}
-
-class indexTokenizer(Resource):
+class crfSegment(Resource):
     def post(self):
+        parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            IndexTokenizer = JClass('com.hankcs.hanlp.tokenizer.IndexTokenizer')
             segments = []
-            for v in IndexTokenizer.segment(innerConvert(content, '2sc')):
+            CRFSegment = JClass('com.hankcs.hanlp.seg.CRF.CRFSegment')
+            segemntTool = CRFSegment().seg
+            for v in segemntTool(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
         else:
@@ -141,6 +126,36 @@ class translatedNameRecognition(Resource):
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
+class indexTokenizer(Resource):
+    def post(self):
+        content = parser.parse_args()['content']
+        convertMode = parser.parse_args()['convertMode']
+        if len(content)>0:
+            IndexTokenizer = JClass('com.hankcs.hanlp.tokenizer.IndexTokenizer')
+            segments = []
+            for v in IndexTokenizer.segment(innerConvert(content, '2sc')):
+                segments.append(innerConvert(str(v), convertMode))
+            return {'response': segments}
+        else:
+            return {'error': { 'content': '長度不得為零'}}
+
+# class parseDependency(Resource):
+#     def post(self):
+#         content = parser.parse_args()['content']
+#         if len(content)>0:
+#             # segments = []
+#             # for v in HanLP.parseDependency(content):
+#             #     segments.append(str(v))
+#             # return {'response': segments}
+#             result = HanLP.parseDependency(content)
+#             print result
+#             # result2 = result.getWordArray()
+#             # print result2
+#             print type(result)
+#             # return HanLP.parseDependency(content)
+#         else:
+#             return {'error': { 'content': '長度不得為零'}}
+
 class keyword(Resource):
     def post(self):
         content = parser.parse_args()['content']
@@ -412,10 +427,12 @@ class hk2t(Resource):
 # 分詞工具
 api.add_resource(segment, '/segment')
 api.add_resource(tcSegment, '/tcSegment')
-# api.add_resource(parseDependency, '/parseDependency')
+api.add_resource(crfSegment, '/crfSegment')
 api.add_resource(jpNameRecognition, '/jpName')
 api.add_resource(translatedNameRecognition, '/translatedName')
 api.add_resource(indexTokenizer, '/indexTokenizer')
+
+# api.add_resource(parseDependency, '/parseDependency')
 
 # NLP 分詞
 api.add_resource(nlpTokenizer, '/nlpTokenizer')
@@ -432,7 +449,6 @@ api.add_resource(urlTokenizer, '/urlTokenizer')
 
 # 分詞優先分出量詞
 api.add_resource(numberAndQuantifierRecognition, '/quantifier')
-# api.add_resource(occurrence, '/occurrence ')
 
 # 分詞優先分出組織
 api.add_resource(organizationRecognition, '/org')
