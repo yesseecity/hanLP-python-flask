@@ -3,6 +3,8 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+import dicInitialize
+
 from jpype import *
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
@@ -33,6 +35,7 @@ parser.add_argument('mode', type=int)
 
 
 
+
 def innerConvert(inputString, mode):
     if innerConvertEnable:
         if mode == '2tc':
@@ -49,7 +52,12 @@ def innerConvert(inputString, mode):
         return inputString
 
 
-# For router
+def initialize():
+    print 'initialize'
+    LexiconUtility = JClass('com.hankcs.hanlp.utility.LexiconUtility')
+    dicInitialize.dynamicDic(LexiconUtility)
+
+## For router
 class segment(Resource):
     def post(self):
         parser.add_argument('method', type=str, required=False)
@@ -487,7 +495,7 @@ api.add_resource(t2hk, '/convert/t2hk')
 api.add_resource(tw2t, '/convert/tw2t')
 api.add_resource(hk2t, '/convert/hk2t')
 
-
+initialize()
 
 if __name__ == '__main__':
     app.run('0.0.0.0', 5001, debug=False)

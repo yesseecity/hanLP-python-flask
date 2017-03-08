@@ -1,0 +1,7 @@
+dictionaries:
+    nf:
+        parentPosTag: ''
+        list:
+            - 'foods_ch.sc.dic'
+            - 'foods_speceial_tw.sc.dic'
+            - 'foods_tw.sc.dic'
