@@ -1,4 +1,17 @@
 dictionaries:
+    brand:
+        parentPosTag: 'nt 1'
+        list:
+            - 'YSM-brand.txt'
+    product:
+        parentPosTag: 'nm 1'
+        list:
+            - 'YSM-product.txt'
+    keyword:
+        parentPosTag: ''
+        list:
+            - 'hot-keyword.txt'
+            - 'iaskTags.txt'
     nf:
         parentPosTag: ''
         list:
