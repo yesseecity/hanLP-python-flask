@@ -27,10 +27,11 @@ javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
 HanLP = JClass('com.hankcs.hanlp.HanLP')
 
-parser.add_argument('content', type=str, required=True, help='content無法解析, *必要欄位')
+parser.add_argument('content', type=str, help='content無法解析, *必要欄位')
 parser.add_argument('convertMode', type=str)
 parser.add_argument('num', type=int)
 parser.add_argument('mode', type=int)
+parser.add_argument('compare', type=str, action='append_const')
 @api.representation('application/json; charset=utf-8')
 
 
@@ -315,23 +316,20 @@ class summary(Resource):
             return {'error': { 'content': '長度不得為零'}}
 class wordDistance(Resource):
     def post(self):
-        content = parser.parse_args()['content']
-        if len(content)>0:
-            parser.add_argument('comparedTo', type=str, required=True, action='append_const', help='comparedTo無法解析, 存放字串陣列 內含兩個要比對的字串, *必要欄位')
-            comparedTo = parser.parse_args()['comparedTo']
-
+        compare = parser.parse_args()['compare']
+        if compare:
             CoreSynonymDictionary = JClass('com.hankcs.hanlp.dictionary.CoreSynonymDictionary')
 
-            distance = CoreSynonymDictionary.distance(innerConvert(comparedTo[0], '2sc'), innerConvert(comparedTo[1], '2sc'))
-            similarity = CoreSynonymDictionary.similarity(innerConvert(comparedTo[0], '2sc'), innerConvert(comparedTo[1], '2sc'))
+            distance = CoreSynonymDictionary.distance(innerConvert(compare[0], '2sc'), innerConvert(compare[1], '2sc'))
+            similarity = CoreSynonymDictionary.similarity(innerConvert(compare[0], '2sc'), innerConvert(compare[1], '2sc'))
             return {'response': {
-                'comparedTo': comparedTo,
+                'compare': compare,
                 'distance': distance,
                 'similarity': similarity
                 }
             }
         else:
-            return {'error': { 'content': '長度不得為零'}}
+            return {'error': { 'compare': '存放字串陣列 內含兩個要比對的字串, *必要欄位'}}
 
 class convertToTraditionalChinese(Resource):
     def post(self):
@@ -478,7 +476,7 @@ api.add_resource(rewrite, '/rewrite')
 api.add_resource(summary, '/summary')
 
 # 比對字串的相似性 todo
-# api.add_resource(wordDistance, '/wordDistance')
+api.add_resource(wordDistance, '/wordDistance')
 
 
 # 文字轉換
