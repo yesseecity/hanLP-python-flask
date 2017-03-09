@@ -6,7 +6,7 @@ This README would normally document whatever steps are necessary to get your app
 
 * hanLP為 [hankcs](https://github.com/hankcs/HanLP) 所開發的中文NLP，這邊用python改寫成 api server 
 
-* Version: 0.2.0
+* Version: 0.2.1
 
 
 ### How do I get set up? ###
@@ -22,7 +22,7 @@ This README would normally document whatever steps are necessary to get your app
     ```
 
     >```
-    $ sudo docker build -t hanlp:0.2.0 ./
+    $ sudo docker build -t hanlp:0.2.1 ./
     ```
     
     備註:
