@@ -4,6 +4,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 import dicInitialize
+import re
 
 from jpype import *
 from flask import Flask
@@ -27,11 +28,13 @@ javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
 HanLP = JClass('com.hankcs.hanlp.HanLP')
 
-parser.add_argument('content', type=str, help='content無法解析, *必要欄位')
-parser.add_argument('convertMode', type=str)
-parser.add_argument('num', type=int)
-parser.add_argument('mode', type=int)
-parser.add_argument('compare', type=str, action='append_const')
+parser.add_argument('content', type=str, help='要分詞的內文')
+parser.add_argument('convertMode', type=str, help='語言轉換模式')
+parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
+# parser.add_argument('mode', type=int)
+parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
+parser.add_argument('enablePOSTagging', type=bool)
+
 @api.representation('application/json; charset=utf-8')
 
 
@@ -75,8 +78,8 @@ class segment(Resource):
         #     ViterbiSegment = JClass('com.hankcs.hanlp.seg.Viterbi.ViterbiSegment')
         #     segemntTool = ViterbiSegment().enableCustomDictionary(False).enablePlaceRecognize(True).enableOrganizationRecognize(True)
         # else:
-        segemntTool = HanLP.segment
 
+        segemntTool = HanLP.segment
         if len(content)>0:
             segments = []
             for v in segemntTool(content):
@@ -99,15 +102,25 @@ class tcSegment(Resource):
             return {'error': { 'content': '長度不得為零'}}
 class crfSegment(Resource):
     def post(self):
-        parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
+        enablePOSTagging =  parser.parse_args()['enablePOSTagging']
         if len(content)>0:
             segments = []
             CRFSegment = JClass('com.hankcs.hanlp.seg.CRF.CRFSegment')
+
             segemntTool = CRFSegment().seg
             for v in segemntTool(innerConvert(content, '2sc')):
-                segments.append(innerConvert(str(v), convertMode))
+                tempString = ''
+                if enablePOSTagging == False:
+                    tempString = re.sub(r'(\/)\w+', '', str(v))
+                    # tempString = re.sub(r'\/.*', '', str(v))
+                else:
+                    tempString = str(v)
+
+                tempString = tempString.strip()
+                if len(tempString)>0:
+                    segments.append(innerConvert(tempString, convertMode))
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
