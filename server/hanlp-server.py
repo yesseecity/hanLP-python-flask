@@ -343,6 +343,27 @@ class wordDistance(Resource):
             }
         else:
             return {'error': { 'compare': '存放字串陣列 內含兩個要比對的字串, *必要欄位'}}
+class wordOccurrence(Resource):
+    def post(self):
+        content = parser.parse_args()['content']
+        convertMode = parser.parse_args()['convertMode']
+        if len(content)>0:
+            content = innerConvert(content, '2sc')
+
+            Occurrence = JClass('com.hankcs.hanlp.corpus.occurrence.Occurrence')
+            occurrence = Occurrence()
+            occurrence.addAll(content)
+            occurrence.compute()
+
+            uniGramObj = {}
+            uniGram = occurrence.getUniGram()
+            for v in uniGram:
+                key = innerConvert(v.getKey(), convertMode)
+                uniGramObj[key] = v.getValue().toString().replace(v.getKey()+'=', '')
+
+            return {'response': uniGramObj}
+        else:
+            return {'error': { 'content': '長度不得為零'}}
 
 class convertToTraditionalChinese(Resource):
     def post(self):
@@ -490,6 +511,9 @@ api.add_resource(summary, '/summary')
 
 # 比對字串的相似性 todo
 api.add_resource(wordDistance, '/wordDistance')
+
+# 單詞出現次數
+api.add_resource(wordOccurrence, '/wordOccurrence')
 
 
 # 文字轉換
