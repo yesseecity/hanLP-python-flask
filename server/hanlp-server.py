@@ -5,13 +5,15 @@ sys.setdefaultencoding('utf-8')
 
 import dicInitialize
 import re
+import logging, datetime
 
 from jpype import *
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from flask_restful.representations.json import output_json
-output_json.func_globals['settings'] = {'ensure_ascii': False, 'encoding': 'utf8'}
 
+output_json.func_globals['settings'] = {'ensure_ascii': False, 'encoding': 'utf8'}
+logging.basicConfig(filename='./log/'+str(datetime.datetime.now())+'.log', filemode='w', level=logging.DEBUG)
 
 # Parameters 
 innerConvertEnable = True
@@ -40,7 +42,6 @@ parser.add_argument('enablePOSTagging', type=bool)
 
 
 
-
 def innerConvert(inputString, mode):
     if innerConvertEnable:
         if mode == '2tc':
@@ -62,12 +63,17 @@ def initialize():
     LexiconUtility = JClass('com.hankcs.hanlp.utility.LexiconUtility')
     dicInitialize.dynamicDic(LexiconUtility)
 
+def generalProcess(input):
+    if len(input):
+        print 'input: ', input
+        logging.info('input: ' + input)
 def generalSetting():
     enablePOSTagging =  parser.parse_args()['enablePOSTagging']
     if enablePOSTagging == False:
         Config.ShowTermNature = False
     else:
         Config.ShowTermNature = True
+
 
 ## For router
 class segment(Resource):
@@ -89,6 +95,7 @@ class segment(Resource):
 
         segemntTool = HanLP.segment
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             for v in segemntTool(content):
@@ -101,6 +108,7 @@ class tcSegment(Resource):
         parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             tcTokenizer = JClass('com.hankcs.hanlp.tokenizer.TraditionalChineseTokenizer')
@@ -114,8 +122,9 @@ class crfSegment(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
-            print 'content: ', content
+
             segments = []
             CRFSegment = JClass('com.hankcs.hanlp.seg.CRF.CRFSegment')
             segemntTool = CRFSegment().seg
@@ -131,6 +140,7 @@ class jpNameRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             jpNameSegment = HanLP.newSegment().enableJapaneseNameRecognize(True)
             segments = []
@@ -144,6 +154,7 @@ class translatedNameRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             tranNameSegment = HanLP.newSegment().enableTranslatedNameRecognize(True)
             segments = []
@@ -188,6 +199,7 @@ class keyword(Resource):
         convertMode = parser.parse_args()['convertMode']
         num = parser.parse_args()['num']
         if len(content)>0:
+            generalProcess(content)
             segments = []
             for v in HanLP.extractKeyword(innerConvert(content, '2sc'), int(num)):
                 segments.append(innerConvert(str(v), convertMode))
@@ -199,6 +211,7 @@ class nlpTokenizer(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
@@ -213,8 +226,9 @@ class urlTokenizer(Resource):
         convertMode = parser.parse_args()['convertMode']
         num = parser.parse_args()['num']
         if len(content)>0:
-            sentence = []
+            generalProcess(content)
             generalSetting()
+            sentence = []
             URLTokenizer = JClass('com.hankcs.hanlp.tokenizer.URLTokenizer')
             for v in URLTokenizer.segment(innerConvert(content, '2sc')):
                 sentence.append(innerConvert(str(v), convertMode))
@@ -226,6 +240,7 @@ class notionalTokenizer(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             #去除停用词
@@ -244,6 +259,7 @@ class numberAndQuantifierRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
@@ -258,6 +274,7 @@ class organizationRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             segemntTool = HanLP.newSegment().enableOrganizationRecognize(True)
@@ -283,6 +300,7 @@ class placeRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             segemntTool = HanLP.newSegment().enablePlaceRecognize(True)
@@ -296,6 +314,7 @@ class posTagging(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             generalSetting()
             segments = []
             segemntTool = HanLP.newSegment().enablePartOfSpeechTagging(True)
@@ -358,6 +377,7 @@ class wordOccurrence(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalProcess(content)
             content = innerConvert(content, '2sc')
 
             Occurrence = JClass('com.hankcs.hanlp.corpus.occurrence.Occurrence')
@@ -379,6 +399,7 @@ class convertToTraditionalChinese(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.convertToTraditionalChinese(content)
             return {'response': result}
         else:
@@ -387,6 +408,7 @@ class convertToSimplifiedChinese(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.convertToSimplifiedChinese(content)
             return {'response': result}
         else:
@@ -395,6 +417,7 @@ class tw2s(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.tw2s(content)
             return {'response': result}
         else:
@@ -403,6 +426,7 @@ class s2tw(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.s2tw(content)
             return {'response': result}
         else:
@@ -411,6 +435,7 @@ class hk2s(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.hk2s(content)
             return {'response': result}
         else:
@@ -419,6 +444,7 @@ class s2hk(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.s2hk(content)
             return {'response': result}
         else:
@@ -427,6 +453,7 @@ class hk2tw(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.hk2tw(content)
             return {'response': result}
         else:
@@ -435,6 +462,7 @@ class tw2hk(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.tw2hk(content)
             return {'response': result}
         else:
@@ -443,6 +471,7 @@ class t2tw(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.t2tw(content)
             return {'response': result}
         else:
@@ -451,6 +480,7 @@ class t2hk(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.t2hk(content)
             return {'response': result}
         else:
@@ -459,6 +489,7 @@ class tw2t(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.tw2t(content)
             return {'response': result}
         else:
@@ -467,6 +498,7 @@ class hk2t(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
+            generalProcess(content)
             result = HanLP.hk2t(content)
             return {'response': result}
         else:
