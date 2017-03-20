@@ -27,6 +27,7 @@ javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
 HanLP = JClass('com.hankcs.hanlp.HanLP')
+Config = JClass('com.hankcs.hanlp.HanLP$Config')
 
 parser.add_argument('content', type=str, help='要分詞的內文')
 parser.add_argument('convertMode', type=str, help='語言轉換模式')
@@ -61,6 +62,13 @@ def initialize():
     LexiconUtility = JClass('com.hankcs.hanlp.utility.LexiconUtility')
     dicInitialize.dynamicDic(LexiconUtility)
 
+def generalSetting():
+    enablePOSTagging =  parser.parse_args()['enablePOSTagging']
+    if enablePOSTagging == False:
+        Config.ShowTermNature = False
+    else:
+        Config.ShowTermNature = True
+
 ## For router
 class segment(Resource):
     def post(self):
@@ -81,6 +89,7 @@ class segment(Resource):
 
         segemntTool = HanLP.segment
         if len(content)>0:
+            generalSetting()
             segments = []
             for v in segemntTool(content):
                 segments.append(str(v))
@@ -91,8 +100,8 @@ class tcSegment(Resource):
     def post(self):
         parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
-
         if len(content)>0:
+            generalSetting()
             segments = []
             tcTokenizer = JClass('com.hankcs.hanlp.tokenizer.TraditionalChineseTokenizer')
             for v in tcTokenizer.segment(content):
@@ -104,21 +113,14 @@ class crfSegment(Resource):
     def post(self):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
-        enablePOSTagging =  parser.parse_args()['enablePOSTagging']
         if len(content)>0:
+            generalSetting()
+            print 'content: ', content
             segments = []
             CRFSegment = JClass('com.hankcs.hanlp.seg.CRF.CRFSegment')
-
             segemntTool = CRFSegment().seg
             for v in segemntTool(innerConvert(content, '2sc')):
-                tempString = ''
-                if enablePOSTagging == False:
-                    tempString = re.sub(r'(\/)\w+', '', str(v))
-                    # tempString = re.sub(r'\/.*', '', str(v))
-                else:
-                    tempString = str(v)
-
-                tempString = tempString.strip()
+                tempString = str(v).strip()
                 if len(tempString)>0:
                     segments.append(innerConvert(tempString, convertMode))
             return {'response': segments}
@@ -129,6 +131,7 @@ class jpNameRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalSetting()
             jpNameSegment = HanLP.newSegment().enableJapaneseNameRecognize(True)
             segments = []
             for v in jpNameSegment.seg(innerConvert(content, '2sc')):
@@ -141,6 +144,7 @@ class translatedNameRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalSetting()
             tranNameSegment = HanLP.newSegment().enableTranslatedNameRecognize(True)
             segments = []
             for v in tranNameSegment.seg(innerConvert(content, '2sc')):
@@ -195,8 +199,9 @@ class nlpTokenizer(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
+            generalSetting()
             segments = []
+            NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
             for v in NLPTokenizer.segment(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -208,8 +213,9 @@ class urlTokenizer(Resource):
         convertMode = parser.parse_args()['convertMode']
         num = parser.parse_args()['num']
         if len(content)>0:
-            URLTokenizer = JClass('com.hankcs.hanlp.tokenizer.URLTokenizer')
             sentence = []
+            generalSetting()
+            URLTokenizer = JClass('com.hankcs.hanlp.tokenizer.URLTokenizer')
             for v in URLTokenizer.segment(innerConvert(content, '2sc')):
                 sentence.append(innerConvert(str(v), convertMode))
             return {'response': sentence}
@@ -220,14 +226,14 @@ class notionalTokenizer(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            NotionalTokenizer = JClass('com.hankcs.hanlp.tokenizer.NotionalTokenizer')
-            
+            generalSetting()
             segments = []
             #去除停用词
             # print NotionalTokenizer.segment(content)
             #去除停用词+斷句
             # print NotionalTokenizer.seg2sentence(content)
 
+            NotionalTokenizer = JClass('com.hankcs.hanlp.tokenizer.NotionalTokenizer')
             for v in NotionalTokenizer.segment(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -238,9 +244,10 @@ class numberAndQuantifierRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
+            generalSetting()
+            segments = []
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
             StandardTokenizer.SEGMENT.enableNumberQuantifierRecognize(True)
-            segments = []
             for v in StandardTokenizer.segment(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -251,8 +258,9 @@ class organizationRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            segemntTool = HanLP.newSegment().enableOrganizationRecognize(True)
+            generalSetting()
             segments = []
+            segemntTool = HanLP.newSegment().enableOrganizationRecognize(True)
             for v in segemntTool.seg(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -275,8 +283,9 @@ class placeRecognition(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            segemntTool = HanLP.newSegment().enablePlaceRecognize(True)
+            generalSetting()
             segments = []
+            segemntTool = HanLP.newSegment().enablePlaceRecognize(True)
             for v in segemntTool.seg(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -287,8 +296,9 @@ class posTagging(Resource):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
         if len(content)>0:
-            segemntTool = HanLP.newSegment().enablePartOfSpeechTagging(True)
+            generalSetting()
             segments = []
+            segemntTool = HanLP.newSegment().enablePartOfSpeechTagging(True)
             for v in segemntTool.seg(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
