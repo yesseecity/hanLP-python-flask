@@ -2,9 +2,9 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+sys.path.append('/hanlp/server/modules/')
 
-import dicInitialize
-import re
+import dicInitialize, apiLogging
 import logging, datetime
 
 from jpype import *
@@ -13,7 +13,7 @@ from flask_restful import Resource, Api, reqparse
 from flask_restful.representations.json import output_json
 
 output_json.func_globals['settings'] = {'ensure_ascii': False, 'encoding': 'utf8'}
-logging.basicConfig(filename='/hanlp/log/'+str(datetime.datetime.now())+'.log', filemode='w', level=logging.DEBUG)
+
 
 # Parameters 
 innerConvertEnable = True
@@ -64,9 +64,8 @@ def initialize():
     dicInitialize.dynamicDic(LexiconUtility)
 
 def generalProcess(input):
-    if len(input):
-        print 'input: ', input
-        logging.info('input: ' + input)
+    apiLogging.writeLog(input)
+
 def generalSetting():
     enablePOSTagging =  parser.parse_args()['enablePOSTagging']
     if enablePOSTagging == False:
@@ -395,7 +394,7 @@ class wordOccurrence(Resource):
         else:
             return {'error': { 'content': '長度不得為零'}}
 
-class convertToTraditionalChinese(Resource):
+class toTC(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
@@ -404,7 +403,7 @@ class convertToTraditionalChinese(Resource):
             return {'response': result}
         else:
             return {'error': { 'content': '長度不得為零'}}
-class convertToSimplifiedChinese(Resource):
+class toSC(Resource):
     def post(self):
         content = parser.parse_args()['content']
         if len(content)>0:
@@ -559,8 +558,8 @@ api.add_resource(wordOccurrence, '/wordOccurrence')
 
 
 # 文字轉換
-api.add_resource(convertToTraditionalChinese, '/convert/2tc')
-api.add_resource(convertToSimplifiedChinese, '/convert/2sc')
+api.add_resource(toTC, '/convert/2tc')
+api.add_resource(toSC, '/convert/2sc')
 api.add_resource(tw2s, '/convert/tw2s')
 api.add_resource(s2tw, '/convert/s2tw')
 api.add_resource(hk2s, '/convert/hk2s')
