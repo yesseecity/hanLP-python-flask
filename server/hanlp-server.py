@@ -175,24 +175,9 @@ class indexTokenizer(Resource):
         else:
             return {'error': { 'content': '長度不得為零'}}
 
-# class parseDependency(Resource):
-#     def post(self):
-#         content = parser.parse_args()['content']
-#         if len(content)>0:
-#             # segments = []
-#             # for v in HanLP.parseDependency(content):
-#             #     segments.append(str(v))
-#             # return {'response': segments}
-#             result = HanLP.parseDependency(content)
-#             print result
-#             # result2 = result.getWordArray()
-#             # print result2
-#             print type(result)
-#             # return HanLP.parseDependency(content)
-#         else:
-#             return {'error': { 'content': '長度不得為零'}}
-
 class keyword(Resource):
+    '''
+    # hanLP 原生 keyword
     def post(self):
         content = parser.parse_args()['content']
         convertMode = parser.parse_args()['convertMode']
@@ -205,6 +190,61 @@ class keyword(Resource):
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
+    '''
+
+    def getListByTag(self, segResult, tag):
+        tempList = []
+        tempDict = {}
+        returnList = []
+
+        for v in segResult:
+            tempString = str(v).strip()
+            if len(tempString)>0 and tempString.find('/'+tag)>1:
+                tempList.append(tempString)
+
+        tempSet = set(tempList)
+        for item in tempSet:
+            tempDict[item] = tempList.count(item)
+
+        import operator, re
+        sortedList = sorted(tempDict.items(), key=operator.itemgetter(1))
+        sortedList.reverse()
+        
+        for v in sortedList:
+            tempString = re.sub(r'(\/)\w+', '', v[0])
+            # print 'tempString: ', tempString ,', ', len(tempString), ', ', v[0]
+            if len(tempString) > 3: #一個中文長度是3
+                returnList.append( tempString )
+
+        return returnList
+
+    # 用StandardTokenizer 取出名詞並統計數量，取重複次數多的
+    def post(self):
+        content = parser.parse_args()['content']
+        convertMode = parser.parse_args()['convertMode']
+        num = parser.parse_args()['num']
+        if not num:
+            return {'error': { 'num': '必須輸入 num，為keyword數量'}}
+
+        if len(content)>0:
+            generalProcess(content)
+            segments = []
+
+            StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
+            StandardTokenizer.SEGMENT.enableNumberQuantifierRecognize(True)
+            segemntTool = StandardTokenizer.segment
+
+            segResult = segemntTool(innerConvert(content, '2sc'))
+
+            kewordList = self.getListByTag(segResult, 'n')
+                        
+            for i in range(0,num):
+                segments.append(innerConvert(kewordList[i], convertMode))
+
+            return {'response': segments}
+        else: 
+            return {'error': { 'content': '長度不得為零'}}
+
 class nlpTokenizer(Resource):
     def post(self):
         content = parser.parse_args()['content']
@@ -333,16 +373,17 @@ class rewrite(Resource):
             return {'response': innerConvert(result, convertMode)}
         else:
             return {'error': { 'content': '長度不得為零'}}
-
-# class suggester(Resource):
-#     def post(self):
-#         content = parser.parse_args()['content']
-#         mode = parser.parse_args()['mode']
-#         if len(content)>0:
-#             Suggester = JClass('com.hankcs.hanlp.suggest.Suggester')
-#             return {'response': suggester.suggest(content, mode)}
-#         else:
-#             return {'error': { 'content': '長度不得為零'}}
+'''
+class suggester(Resource):
+    def post(self):
+        content = parser.parse_args()['content']
+        mode = parser.parse_args()['mode']
+        if len(content)>0:
+            Suggester = JClass('com.hankcs.hanlp.suggest.Suggester')
+            return {'response': suggester.suggest(content, mode)}
+        else:
+            return {'error': { 'content': '長度不得為零'}}
+'''
 class summary(Resource):
     def post(self):
         content = parser.parse_args()['content']
@@ -513,7 +554,6 @@ api.add_resource(jpNameRecognition, '/jpName')
 api.add_resource(translatedNameRecognition, '/translatedName')
 api.add_resource(indexTokenizer, '/indexTokenizer')
 
-# api.add_resource(parseDependency, '/parseDependency')
 
 # NLP 分詞
 api.add_resource(nlpTokenizer, '/nlpTokenizer')
