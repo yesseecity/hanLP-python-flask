@@ -237,9 +237,10 @@ class keyword(Resource):
             segResult = segemntTool(innerConvert(content, '2sc'))
 
             kewordList = self.getListByTag(segResult, 'n')
-                        
+
             for i in range(0,num):
-                segments.append(innerConvert(kewordList[i], convertMode))
+                if i < len(kewordList):
+                    segments.append(innerConvert(kewordList[i], convertMode))
 
             return {'response': segments}
         else: 
