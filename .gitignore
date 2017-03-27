@@ -1,2 +1,4 @@
 *.DS_Store
 *.pyc
+*.log
+server/lib/hanlp-1.3.2/data
