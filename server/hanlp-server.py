@@ -34,7 +34,6 @@ Config = JClass('com.hankcs.hanlp.HanLP$Config')
 parser.add_argument('content', type=str, help='要分詞的內文')
 parser.add_argument('convertMode', type=str, help='語言轉換模式')
 parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
-# parser.add_argument('mode', type=int)
 parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
 parser.add_argument('enablePOSTagging', type=bool, help='顯示POS tag, default=true')
 parser.add_argument('enableCustomDic', type=bool, help='啟用自定義詞庫, default=true')
@@ -78,8 +77,8 @@ def generalSetting():
 ## For router
 class segment(Resource):
     def post(self):
-        parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
+        convertMode = parser.parse_args()['convertMode']
         enableCustomDic = parser.parse_args()['enableCustomDic']
 
         StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
@@ -93,8 +92,9 @@ class segment(Resource):
             generalProcess(content)
             generalSetting()
             segments = []
-            for v in segemntTool(content):
-                segments.append(str(v))
+            for v in segemntTool(innerConvert(content, '2sc')):
+                tempString = str(v).strip()
+                segments.append(innerConvert(tempString, convertMode))
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
