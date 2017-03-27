@@ -37,7 +37,8 @@ parser.add_argument('convertMode', type=str, help='語言轉換模式')
 parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
 # parser.add_argument('mode', type=int)
 parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
-parser.add_argument('enablePOSTagging', type=bool)
+parser.add_argument('enablePOSTagging', type=bool, help='顯示POS tag, default=true')
+parser.add_argument('enableCustomDic', type=bool, help='啟用自定義詞庫, default=true')
 
 @api.representation('application/json; charset=utf-8')
 
@@ -61,8 +62,8 @@ def innerConvert(inputString, mode):
 
 def initialize():
     print 'initialize'
-    LexiconUtility = JClass('com.hankcs.hanlp.utility.LexiconUtility')
-    dicInitialize.dynamicDic(LexiconUtility)
+    CustomDictionary = JClass('com.hankcs.hanlp.dictionary.CustomDictionary')
+    dicInitialize.dynamicDic(CustomDictionary)
 
 def generalProcess(input):
     apiLogging.writeLog(input)
@@ -79,18 +80,13 @@ class segment(Resource):
     def post(self):
         parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
-        # method = parser.parse_args()['method']
+        enableCustomDic = parser.parse_args()['enableCustomDic']
 
-        # if method == 'NShort':
-        #     NShortSegment = JClass('com.hankcs.hanlp.seg.NShort.NShortSegment')
-        #     segemntTool = NShortSegment().enableCustomDictionary(False).enablePlaceRecognize(True).enableOrganizationRecognize(True)
-        #     print segemntTool
-        #     print segemntTool.__class__
-        #     print segemntTool(content)
-        # elif method == 'Viterbi':
-        #     ViterbiSegment = JClass('com.hankcs.hanlp.seg.Viterbi.ViterbiSegment')
-        #     segemntTool = ViterbiSegment().enableCustomDictionary(False).enablePlaceRecognize(True).enableOrganizationRecognize(True)
-        # else:
+        StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
+        if enableCustomDic == False:
+            StandardTokenizer.SEGMENT.enableCustomDictionary(False)
+        else:
+            StandardTokenizer.SEGMENT.enableCustomDictionary(True)
 
         segemntTool = HanLP.segment
         if len(content)>0:
@@ -104,7 +100,6 @@ class segment(Resource):
             return {'error': { 'content': '長度不得為零'}}
 class tcSegment(Resource):
     def post(self):
-        parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
         if len(content)>0:
             generalProcess(content)
@@ -123,7 +118,6 @@ class crfSegment(Resource):
         if len(content)>0:
             generalProcess(content)
             generalSetting()
-
             segments = []
             CRFSegment = JClass('com.hankcs.hanlp.seg.CRF.CRFSegment')
             segemntTool = CRFSegment().seg
