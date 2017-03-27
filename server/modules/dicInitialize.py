@@ -4,8 +4,7 @@ import yaml
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-def dynamicDic(LexiconUtility):
-
+def dynamicDic(CustomDictionary):
     with open('/hanlp/config/dictionaries.yaml', 'r') as stream:
         try:
             yamlFile = yaml.load(stream)
@@ -23,6 +22,7 @@ def dynamicDic(LexiconUtility):
                         for word in inputTxt.readlines():
                             word = word.replace('\n', '')
                             if len(word) > 0:
-                                LexiconUtility.setAttribute(word, key + ' 1' + parentPosTag);
+                                CustomDictionary.insert(word, key + ' 1' + parentPosTag);        
         except yaml.YAMLError as exc:
             print(exc)
+
