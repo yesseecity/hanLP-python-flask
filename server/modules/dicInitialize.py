@@ -1,15 +1,12 @@
 # coding=UTF-8
-import sys
 import yaml
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 def dynamicDic(CustomDictionary):
     with open('/hanlp/config/dictionaries.yaml', 'r') as stream:
         try:
             yamlFile = yaml.load(stream)
 
-            for key, value in yamlFile['dictionaries'].iteritems():
+            for key, value in yamlFile['dictionaries'].items():
                 
                 if len(value['parentPosTag']) > 0:
                     parentPosTag = ' '+value['parentPosTag']
@@ -17,7 +14,7 @@ def dynamicDic(CustomDictionary):
                     parentPosTag = ''
 
                 for dictionary in value['list']:
-                    print '動態載入辭庫: ', dictionary
+                    print('動態載入辭庫: ', dictionary)
                     with open('/hanlp/server/dics/'+dictionary, 'r') as inputTxt:
                         for word in inputTxt.readlines():
                             word = word.replace('\n', '')
