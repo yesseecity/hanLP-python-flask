@@ -1,7 +1,5 @@
 # coding=UTF-8
 import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
 sys.path.append('/hanlp/server/modules/')
 
 import dicInitialize, apiLogging
@@ -11,8 +9,6 @@ from jpype import *
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 from flask_restful.representations.json import output_json
-
-output_json.func_globals['settings'] = {'ensure_ascii': False, 'encoding': 'utf8'}
 
 
 # Parameters 
@@ -34,7 +30,6 @@ Config = JClass('com.hankcs.hanlp.HanLP$Config')
 parser.add_argument('content', type=str, help='要分詞的內文')
 parser.add_argument('convertMode', type=str, help='語言轉換模式')
 parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
-# parser.add_argument('mode', type=int)
 parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
 parser.add_argument('enablePOSTagging', type=bool, help='顯示POS tag, default=true')
 parser.add_argument('enableCustomDic', type=bool, help='啟用自定義詞庫, default=true')
@@ -60,7 +55,7 @@ def innerConvert(inputString, mode):
 
 
 def initialize():
-    print 'initialize'
+    print('initialize')
     CustomDictionary = JClass('com.hankcs.hanlp.dictionary.CustomDictionary')
     dicInitialize.dynamicDic(CustomDictionary)
 
@@ -78,8 +73,8 @@ def generalSetting():
 ## For router
 class segment(Resource):
     def post(self):
-        parser.add_argument('method', type=str, required=False)
         content = parser.parse_args()['content']
+        convertMode = parser.parse_args()['convertMode']
         enableCustomDic = parser.parse_args()['enableCustomDic']
 
         StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
@@ -93,8 +88,9 @@ class segment(Resource):
             generalProcess(content)
             generalSetting()
             segments = []
-            for v in segemntTool(content):
-                segments.append(str(v))
+            for v in segemntTool(innerConvert(content, '2sc')):
+                tempString = str(v).strip()
+                segments.append(innerConvert(tempString, convertMode))
             return {'response': segments}
         else:
             return {'error': { 'content': '長度不得為零'}}
@@ -206,7 +202,7 @@ class keyword(Resource):
         
         for v in sortedList:
             tempString = re.sub(r'(\/)\w+', '', v[0])
-            # print 'tempString: ', tempString ,', ', len(tempString), ', ', v[0]
+            # print('tempString: ', tempString ,', ', len(tempString), ', ', v[0])
             if len(tempString) > 3: #一個中文長度是3
                 returnList.append( tempString )
 
@@ -278,9 +274,9 @@ class notionalTokenizer(Resource):
             generalSetting()
             segments = []
             #去除停用词
-            # print NotionalTokenizer.segment(content)
+            # print(NotionalTokenizer.segment(content))
             #去除停用词+斷句
-            # print NotionalTokenizer.seg2sentence(content)
+            # print(NotionalTokenizer.seg2sentence(content))
 
             NotionalTokenizer = JClass('com.hankcs.hanlp.tokenizer.NotionalTokenizer')
             for v in NotionalTokenizer.segment(innerConvert(content, '2sc')):
