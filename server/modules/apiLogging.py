@@ -4,5 +4,5 @@ logging.basicConfig(filename='/hanlp/log/'+str(datetime.datetime.now())+'.log', 
 
 def writeLog(input):
     if len(input):
-        print 'input: ', input
+        print('input: ', input)
         logging.info('input: ' + input)
