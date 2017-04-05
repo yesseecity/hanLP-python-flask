@@ -203,7 +203,7 @@ class keyword(Resource):
         for v in sortedList:
             tempString = re.sub(r'(\/)\w+', '', v[0])
             # print('tempString: ', tempString ,', ', len(tempString), ', ', v[0])
-            if len(tempString) > 3: #一個中文長度是3
+            if len(tempString) >= 2:
                 returnList.append( tempString )
 
         return returnList
@@ -222,6 +222,7 @@ class keyword(Resource):
 
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
             StandardTokenizer.SEGMENT.enableNumberQuantifierRecognize(True)
+            StandardTokenizer.SEGMENT.enableCustomDictionary(False)
             segemntTool = StandardTokenizer.segment
 
             segResult = segemntTool(innerConvert(content, '2sc'))
