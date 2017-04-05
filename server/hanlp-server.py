@@ -61,7 +61,7 @@ def initialize():
     dicInitialize.dynamicDic(CustomDictionary)
 
 def generalProcess(input):
-    apiLogging.writeLog(input)
+    apiLogging.inputMessage(input)
 
 def generalSetting():
     enablePOSTagging =  parser.parse_args()['enablePOSTagging']
@@ -227,12 +227,18 @@ class keyword(Resource):
 
             segResult = segemntTool(innerConvert(content, '2sc'))
 
-            kewordList = self.getListByTag(segResult, 'n')
+            keywordList = self.getListByTag(segResult, 'n')
 
             for i in range(0,num):
-                if i < len(kewordList):
-                    segments.append(innerConvert(kewordList[i], convertMode))
+                if i < len(keywordList):
+                    segments.append(innerConvert(keywordList[i], convertMode))
+                else:
+                    break
 
+            apiLogging.keyword(innerConvert(', '.join(keywordList) ,convertMode))
+            if len(segments)==0:
+                apiLogging.keyword('has no segments')
+                
             return {'response': segments}
         else: 
             return {'error': { 'content': '長度不得為零'}}
