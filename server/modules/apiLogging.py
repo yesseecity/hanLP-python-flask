@@ -1,6 +1,7 @@
 # coding=UTF-8
 import logging, datetime
-logging.basicConfig(filename='/hanlp/log/'+str(datetime.datetime.now())+'.log', filemode='w', level=logging.DEBUG)
+# logging.basicConfig(filename='/hanlp/log/'+str(datetime.datetime.now())+'.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='/hanlp/log/apiRequest.log', filemode='w', level=logging.DEBUG)
 
 def writeLog(input):
     if len(input):
