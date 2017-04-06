@@ -218,6 +218,7 @@ class keyword(Resource):
 
         if len(content)>0:
             generalProcess(content)
+            Config.ShowTermNature = True
             segments = []
 
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
@@ -235,7 +236,11 @@ class keyword(Resource):
                 else:
                     break
 
-            apiLogging.keyword(innerConvert(', '.join(keywordList) ,convertMode))
+            tempList = []
+            for v in list(segResult):
+                tempList.append(str(v))
+            apiLogging.keyword('segResult: ' + innerConvert(', '.join(tempList) ,convertMode))
+            apiLogging.keyword('keywordList: ' + innerConvert(', '.join(keywordList) ,convertMode))
             if len(segments)==0:
                 apiLogging.keyword('has no segments')
                 
