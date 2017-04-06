@@ -218,6 +218,7 @@ class keyword(Resource):
 
         if len(content)>0:
             generalProcess(content)
+            Config.ShowTermNature = True
             segments = []
 
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
@@ -230,8 +231,18 @@ class keyword(Resource):
             kewordList = self.getListByTag(segResult, 'n')
 
             for i in range(0,num):
-                if i < len(kewordList):
-                    segments.append(innerConvert(kewordList[i], convertMode))
+                if i < len(keywordList):
+                    segments.append(innerConvert(keywordList[i], convertMode))
+                else:
+                    break
+
+            tempList = []
+            for v in list(segResult):
+                tempList.append(str(v))
+            apiLogging.keyword('segResult: ' + innerConvert(', '.join(tempList) ,convertMode))
+            apiLogging.keyword('keywordList: ' + innerConvert(', '.join(keywordList) ,convertMode))
+            if len(segments)==0:
+                apiLogging.keyword('has no segments')
 
             return {'response': segments}
         else: 
