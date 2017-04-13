@@ -2,8 +2,7 @@
 import sys
 sys.path.append('/hanlp/server/modules/')
 
-import dicInitialize, apiLogging
-import logging, datetime
+import dictionaryService, apiLogging
 
 from jpype import *
 from flask import Flask
@@ -33,6 +32,7 @@ parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
 parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
 parser.add_argument('enablePOSTagging', type=bool, help='顯示POS tag, default=true')
 parser.add_argument('enableCustomDic', type=bool, help='啟用自定義詞庫, default=true')
+parser.add_argument('keywords', type=str, action='append_const', help='新增keyword所傳入的陣列')
 
 @api.representation('application/json; charset=utf-8')
 
@@ -56,11 +56,12 @@ def innerConvert(inputString, mode):
 
 def initialize():
     print('initialize')
-    CustomDictionary = JClass('com.hankcs.hanlp.dictionary.CustomDictionary')
-    dicInitialize.dynamicDic(CustomDictionary)
+    global ds
+    ds = dictionaryService.active(JClass('com.hankcs.hanlp.dictionary.CustomDictionary'))
+    ds.loadDictionary()
 
 def generalProcess(input):
-    apiLogging.writeLog(input)
+    apiLogging.inputMessage(input)
 
 def generalSetting():
     enablePOSTagging =  parser.parse_args()['enablePOSTagging']
@@ -68,7 +69,6 @@ def generalSetting():
         Config.ShowTermNature = False
     else:
         Config.ShowTermNature = True
-
 
 ## For router
 class segment(Resource):
@@ -228,7 +228,7 @@ class keyword(Resource):
 
             segResult = segemntTool(innerConvert(content, '2sc'))
 
-            kewordList = self.getListByTag(segResult, 'n')
+            keywordList = self.getListByTag(segResult, 'n')
 
             for i in range(0,num):
                 if i < len(keywordList):
@@ -247,6 +247,14 @@ class keyword(Resource):
             return {'response': segments}
         else: 
             return {'error': { 'content': '長度不得為零'}}
+class addKeyword(Resource):
+    def post(self):
+        keywords = parser.parse_args()['keywords']
+        result = ds.addKeyword(keywords)
+        if result == 'succes':
+            return {'response': result}
+        else:
+            return {'error': result}
 
 class nlpTokenizer(Resource):
     def post(self):
@@ -564,6 +572,8 @@ api.add_resource(nlpTokenizer, '/nlpTokenizer')
 # 分析並回傳文章重點keyword
 api.add_resource(keyword, '/keyword')
 
+# 新增keyword到自訂辭典
+api.add_resource(addKeyword, '/addKeyword')
 
 # 分詞優先分出url
 api.add_resource(urlTokenizer, '/urlTokenizer')

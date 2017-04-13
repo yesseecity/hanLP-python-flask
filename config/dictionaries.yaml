@@ -1,4 +1,8 @@
 dictionaries:
+    keyword:
+        parentPosTag: ''
+        list:
+            - 'keyword-from-api.txt'
     nf:
         parentPosTag: ''
         list:
