@@ -12,6 +12,7 @@ dictionaries:
             - 'YSM-product.txt'
             - 'hot-keyword.txt'
             - 'iaskTags.txt'
+            - 'keyword-from-api.txt'
     nf:
         parentPosTag: ''
         list:
