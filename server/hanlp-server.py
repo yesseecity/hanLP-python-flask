@@ -25,7 +25,6 @@ javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
 HanLP = JClass('com.hankcs.hanlp.HanLP')
 Config = JClass('com.hankcs.hanlp.HanLP$Config')
-NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
 
 parser.add_argument('content', type=str, help='要分詞的內文')
 parser.add_argument('convertMode', type=str, help='語言轉換模式')
@@ -259,12 +258,13 @@ class addKeyword(Resource):
         keywords = parser.parse_args()['keywords']
         if len(keywords) > 0 :
             newKeywords = []
+            print('addKeywords:["' + '","'.join(keywords)+ '"]')
             for keyword in keywords:
                 w2sc = innerConvert(keyword, '2sc')
-                w2scPOStag= NLPTokenizer.segment(w2sc)
-
+                w2scPOStag= HanLP.segment(w2sc)
                 if len(w2scPOStag)==1:
-                    postag = re.sub(r'\w*(\/)+', '', str(w2scPOStag[0]))
+                    tempString = str(w2scPOStag[0])
+                    postag = tempString[tempString.find('/')+1:len(tempString)]
                     if postag != 'keyword':
                         newKeywords.append(w2sc)
                 if len(w2scPOStag)>1:
@@ -274,7 +274,7 @@ class addKeyword(Resource):
                 # dictionaryService addKeyword
                 result = ds.addKeyword(newKeywords)
                 if result == 'succes':
-                    apiLogging.info('"newKeywords":[' + ','.join(newKeywords)+ ']' )
+                    apiLogging.info('"newKeywords":[' + ','.join(newKeywords)+ ']')
                     return {'response': {'newKeywords': newKeywords}}
                 else:
                     apiLogging.error(result)
@@ -292,6 +292,8 @@ class nlpTokenizer(Resource):
             generalProcess(content)
             generalSetting()
             segments = []
+
+            NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
             for v in NLPTokenizer.segment(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
