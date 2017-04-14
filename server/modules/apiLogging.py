@@ -11,5 +11,8 @@ def inputMessage(message):
 def keyword(message):
     logging.info('keywordList: ' + message)
 
+def info(message):
+    logging.info(message)
+
 def error(message):
     logging.error(message)

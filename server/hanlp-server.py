@@ -2,7 +2,7 @@
 import sys
 sys.path.append('/hanlp/server/modules/')
 
-import dictionaryService, apiLogging
+import dictionaryService, apiLogging, re
 
 from jpype import *
 from flask import Flask
@@ -25,14 +25,15 @@ javaClassPath = hanLPLibPath+'hanlp-1.3.2.jar'+':'+hanLPLibPath
 startJVM(getDefaultJVMPath(), '-Djava.class.path='+javaClassPath, '-Xms1g', '-Xmx1g')
 HanLP = JClass('com.hankcs.hanlp.HanLP')
 Config = JClass('com.hankcs.hanlp.HanLP$Config')
+NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
 
 parser.add_argument('content', type=str, help='要分詞的內文')
 parser.add_argument('convertMode', type=str, help='語言轉換模式')
 parser.add_argument('num', type=int, help='回傳字詞陣列的長度')
-parser.add_argument('compare', type=str, action='append_const', help='要比對的兩個詞所在的陣列')
+parser.add_argument('compare', type=str, action='append', help='要比對的兩個詞所在的陣列')
 parser.add_argument('enablePOSTagging', type=bool, help='顯示POS tag, default=true')
 parser.add_argument('enableCustomDic', type=bool, help='啟用自定義詞庫, default=true')
-parser.add_argument('keywords', type=str, action='append_const', help='新增keyword所傳入的陣列')
+parser.add_argument('keywords', type=str, action='append', help='新增keyword所傳入的陣列')
 
 @api.representation('application/json; charset=utf-8')
 
@@ -221,9 +222,15 @@ class keyword(Resource):
             Config.ShowTermNature = True
             segments = []
 
+            enableCustomDic = parser.parse_args()['enableCustomDic']
+
             StandardTokenizer = JClass('com.hankcs.hanlp.tokenizer.StandardTokenizer')
             StandardTokenizer.SEGMENT.enableNumberQuantifierRecognize(True)
-            StandardTokenizer.SEGMENT.enableCustomDictionary(False)
+            if enableCustomDic == False:
+                StandardTokenizer.SEGMENT.enableCustomDictionary(False)
+            else:
+                StandardTokenizer.SEGMENT.enableCustomDictionary(True)
+
             segemntTool = StandardTokenizer.segment
 
             segResult = segemntTool(innerConvert(content, '2sc'))
@@ -250,11 +257,32 @@ class keyword(Resource):
 class addKeyword(Resource):
     def post(self):
         keywords = parser.parse_args()['keywords']
-        result = ds.addKeyword(keywords)
-        if result == 'succes':
-            return {'response': result}
+        if len(keywords) > 0 :
+            newKeywords = []
+            for keyword in keywords:
+                w2sc = innerConvert(keyword, '2sc')
+                w2scPOStag= NLPTokenizer.segment(w2sc)
+
+                if len(w2scPOStag)==1:
+                    postag = re.sub(r'\w*(\/)+', '', str(w2scPOStag[0]))
+                    if postag != 'keyword':
+                        newKeywords.append(w2sc)
+                if len(w2scPOStag)>1:
+                    newKeywords.append(w2sc)
+
+            if len(newKeywords)>0:
+                # dictionaryService addKeyword
+                result = ds.addKeyword(newKeywords)
+                if result == 'succes':
+                    apiLogging.info('"newKeywords":[' + ','.join(newKeywords)+ ']' )
+                    return {'response': {'newKeywords': newKeywords}}
+                else:
+                    apiLogging.error(result)
+                    return {'error': result}
+            else:
+                return {'response': {'info': '所有的keyword已經存在於詞庫中'}}
         else:
-            return {'error': result}
+            return {'error': {'keywords': '新增keyword所傳入的陣列，長度不得為0'}}
 
 class nlpTokenizer(Resource):
     def post(self):
@@ -264,7 +292,6 @@ class nlpTokenizer(Resource):
             generalProcess(content)
             generalSetting()
             segments = []
-            NLPTokenizer = JClass('com.hankcs.hanlp.tokenizer.NLPTokenizer')
             for v in NLPTokenizer.segment(innerConvert(content, '2sc')):
                 segments.append(innerConvert(str(v), convertMode))
             return {'response': segments}
@@ -285,6 +312,7 @@ class urlTokenizer(Resource):
             return {'response': sentence}
         else:
             return {'error': { 'content': '長度不得為零'}}
+
 class notionalTokenizer(Resource):
     def post(self):
         content = parser.parse_args()['content']
