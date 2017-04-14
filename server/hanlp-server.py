@@ -260,7 +260,7 @@ class addKeyword(Resource):
             newKeywords = []
             print('addKeywords:["' + '","'.join(keywords)+ '"]')
             for keyword in keywords:
-                w2sc = innerConvert(keyword, '2sc')
+                w2sc = innerConvert(keyword, '2sc').lower()
                 w2scPOStag= HanLP.segment(w2sc)
                 if len(w2scPOStag)==1:
                     tempString = str(w2scPOStag[0])
