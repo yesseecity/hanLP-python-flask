@@ -1,7 +1,10 @@
 # coding=UTF-8
 import logging, datetime
-# logging.basicConfig(filename='/hanlp/log/'+str(datetime.datetime.now())+'.log', filemode='w', level=logging.DEBUG)
-logging.basicConfig(filename='/hanlp/log/apiRequest.log', filemode='w', level=logging.DEBUG)
+import logging.handlers
+
+# logging.basicConfig(filename='/hanlp/log/apiRequest.log', filemode='w', level=logging.DEBUG)
+handler = logging.handlers.RotatingFileHandler('/hanlp/log/apiRequest.log', maxBytes=50*1024*1024, backupCount=5)
+logging.basicConfig( filemode='a', level=logging.DEBUG, handlers=[handler])
 
 def inputMessage(message):
     if len(message):
